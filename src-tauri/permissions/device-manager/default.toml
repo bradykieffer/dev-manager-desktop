@@ -12,4 +12,6 @@ permissions = [
   "allow-app-ssh-key-path",
   "allow-app-ssh-pubkey",
   "allow-ssh-key-dir",
+  "allow-agent-socket",
+  "allow-set-agent-socket",
 ]

@@ -5,7 +5,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use ares_connection_lib::session::{authenticate, connect, SshConnection};
-use libssh_rs::{AuthStatus, Session};
+use libssh_rs::{AuthStatus, Session, SshOption};
 use regex::Regex;
 use uuid::Uuid;
 
@@ -26,15 +26,18 @@ impl DeviceConnection {
             .map(|k| k.read_content(ssh_dir))
             .transpose()?;
         if key.is_none() && device.password.is_none() {
-            // Keep unauthenticated devices working; otherwise use only the agent,
-            // not libssh's automatic fallback to private keys on disk.
-            if session.userauth_none(None)? != AuthStatus::Success
-                && session.userauth_agent(None)? != AuthStatus::Success
-            {
-                return Err(Error::Authorization {
-                    message: "SSH agent authorization failed. Check SSH_AUTH_SOCK and loaded keys."
-                        .to_string(),
-                });
+            if session.userauth_none(None)? != AuthStatus::Success {
+                if let Some(socket) = crate::ssh_agent::resolve_socket()? {
+                    log::debug!("Using SSH agent socket: {socket}");
+                    session.set_option(SshOption::IdentityAgent(Some(socket)))?;
+                }
+                // Use only the agent, not automatic fallback to private keys on disk.
+                if session.userauth_agent(None)? != AuthStatus::Success {
+                    return Err(Error::Authorization {
+                        message: "SSH agent authorization failed. Check socket settings and loaded keys."
+                            .to_string(),
+                    });
+                }
             }
         } else {
             authenticate(&session, &device, key.as_deref())?;

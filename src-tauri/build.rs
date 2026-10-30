@@ -18,6 +18,8 @@ fn main() {
                     "app_ssh_key_path",
                     "app_ssh_pubkey",
                     "ssh_key_dir",
+                    "agent_socket",
+                    "set_agent_socket",
                 ]),
             )
             .plugin(

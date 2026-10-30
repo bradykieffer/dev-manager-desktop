@@ -47,8 +47,9 @@
       <div class="input-group auth-input" [formGroup]="formGroup.controls.sshAuth">
         @let authType = formGroup.controls.sshAuth.controls.type.getRawValue();
         @if (authType === 'agent') {
-          <span class="form-text">Uses keys loaded in your SSH agent via SSH_AUTH_SOCK. No private key is stored in the app.
-            If using 1Password, check its menu-bar or tray icon for a pending approval.</span>
+          <span class="form-text">Uses keys loaded in your SSH agent. The socket is discovered via SSH_AUTH_SOCK or 1Password on macOS.
+            No private key is stored in the app. Check 1Password for any pending approval.</span>
+          <button type="button" class="btn btn-outline-secondary" (click)="agentSettings()">Agent settings...</button>
         } @else if (authType) {
           <input type="text" class="form-control" id="authValue" formControlName="value" [appSshAuthValue]="authType"
                  autocomplete="off">

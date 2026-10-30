@@ -20,6 +20,7 @@ import * as path from '@tauri-apps/api/path';
 import * as os from '@tauri-apps/plugin-os';
 import {LocalFileService} from "../../core/services/local-file.service";
 import {deviceAddressValidator} from "./device-address.validator";
+import {SshAgentSettingsComponent} from "./ssh-agent-settings/ssh-agent-settings.component";
 
 @Component({
     selector: 'app-device-editor',
@@ -332,6 +333,10 @@ export class DeviceEditorComponent implements OnInit {
             file = newFile;
         }
         this.formGroup.controls.sshAuth.controls.value.setValue(new OpenSshLocalKeyValue(file, passphrase));
+    }
+
+    agentSettings(): void {
+        this.modalService.open(SshAgentSettingsComponent, {centered: true}).result.catch(noop);
     }
 
     authInfoHelp() {

@@ -25,6 +25,7 @@ mod remote_files;
 mod session_manager;
 mod shell_manager;
 mod spawn_manager;
+mod ssh_agent;
 #[cfg(test)]
 mod tests;
 
@@ -64,6 +65,10 @@ pub fn run() {
         .and_then(|app| {
             app.run(|app, event| match event {
                 RunEvent::Ready => {
+                    match app.path().app_config_dir() {
+                        Ok(dir) => ssh_agent::init(dir),
+                        Err(error) => log::warn!("Could not locate SSH-agent settings: {error}"),
+                    }
                     if let Some(dir) = app_dirs::ssh_dir(app) {
                         app.state::<DeviceManager>().ssh_dir.set(dir.clone());
                         app.state::<SessionManager>().ssh_dir.set(dir.clone());

@@ -1,0 +1,22 @@
+<form (submit)="$event.preventDefault(); save()">
+  <div class="modal-header">
+    <h5 class="modal-title">SSH Agent Settings</h5>
+    <button type="button" class="btn-close" aria-label="Close" (click)="modal.dismiss()"></button>
+  </div>
+  <div class="modal-body">
+    <label for="agentSocket" class="form-label">Socket path (optional)</label>
+    <input id="agentSocket" class="form-control" type="text" [formControl]="socket"
+           [readOnly]="!ready || saving" placeholder="Automatic" autocomplete="off" aria-describedby="agentSocketHelp">
+    <div id="agentSocketHelp" class="form-text">
+      Enter an absolute socket path, or leave blank to use SSH_AUTH_SOCK, then the standard 1Password socket on macOS.
+      This setting is saved on this computer, applies to all devices, and takes effect for new connections.
+    </div>
+    @if (error) {
+      <div class="alert alert-danger mt-2" role="alert">{{ error }}</div>
+    }
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" (click)="modal.dismiss()">Cancel</button>
+    <button type="submit" class="btn btn-primary" [disabled]="!ready || saving">Save</button>
+  </div>
+</form>

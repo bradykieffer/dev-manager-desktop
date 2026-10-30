@@ -100,6 +100,16 @@ async fn ssh_key_dir<R: Runtime>(app: AppHandle<R>) -> Result<String, Error> {
     Ok(app_dirs::ssh_dir(&app).unwrap().to_string_lossy().to_string())
 }
 
+#[tauri::command]
+async fn agent_socket() -> Result<Option<String>, Error> {
+    crate::ssh_agent::configured_socket()
+}
+
+#[tauri::command]
+async fn set_agent_socket(socket: Option<String>) -> Result<(), Error> {
+    crate::ssh_agent::set_socket(socket)
+}
+
 /// Initializes the plugin.
 pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
     Builder::new(name)
@@ -115,6 +125,8 @@ pub fn plugin<R: Runtime>(name: &'static str) -> TauriPlugin<R> {
             app_ssh_key_path,
             app_ssh_pubkey,
             ssh_key_dir,
+            agent_socket,
+            set_agent_socket,
         ])
         .build()
 }

@@ -197,6 +197,14 @@ export class DeviceManagerService extends BackendClient {
         return await this.invoke<string>('ssh_key_dir');
     }
 
+    async getSshAgentSocket(): Promise<string | null> {
+        return this.invoke('agent_socket');
+    }
+
+    async setSshAgentSocket(socket: string | null): Promise<void> {
+        return this.invoke('set_agent_socket', {socket});
+    }
+
     async sshKeyPath(basename: string): Promise<string> {
         if (basename.includes(path.sep())) {
             return basename;

@@ -38,12 +38,20 @@ if the request fails or the server does not report success.
 
 Choose **SSH Agent** when adding or editing a device to use keys already loaded
 in your local SSH agent (`ssh-add -l` lists them). The matching public key must
-be authorized on the TV. The app uses `SSH_AUTH_SOCK` from its launch environment;
-if your desktop launcher doesn't inherit it, launch the app from a terminal
-where the agent is available. This also works with agents such as 1Password
-when their socket is exported as `SSH_AUTH_SOCK`. For 1Password, check its
-menu-bar or tray icon during connection: approval prompts can wait in the
-background rather than opening a window automatically.
+be authorized on the TV. Socket discovery uses this order:
+
+1. The optional absolute path saved under **Agent settings...**.
+2. `SSH_AUTH_SOCK` from the app's launch environment.
+3. On macOS, the standard 1Password socket at
+   `~/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock`.
+
+The last option works from Finder without exporting an environment variable.
+An explicit setting takes priority even if its socket is unavailable; the app
+won't silently switch agents. Leave the setting blank to restore discovery.
+This is a machine-local setting for all devices, saved as `ssh-agent.json` in
+the app's configuration directory, separately from the SDK's device list.
+Changes apply to new connections. For 1Password, check its menu-bar or tray
+icon for pending approvals if a prompt doesn't appear automatically.
 
 Agent-backed devices store no private key or password. Existing devices with
 neither also try the agent. Keys stay in the agent; they cannot be exported
