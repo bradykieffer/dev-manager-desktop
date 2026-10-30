@@ -20,7 +20,10 @@
         <a class="text-nowrap" ngbNavLink>Shell Script</a>
         <ng-template ngbNavContent>
           @let script = renewScriptContent;
-          @if (script) {
+          @if (!device.privateKey) {
+            <p>Generating a standalone script requires an exportable private key. SSH-agent keys stay in the agent.
+              Use Manual Setup instead.</p>
+          } @else if (script) {
             <p>Following is a shell script. It can be executed anywhere in your local area network.</p>
             <div class="position-relative">
               <pre class="pre-scrollable bg-panel p-3">{{ script }}</pre>

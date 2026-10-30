@@ -1,7 +1,7 @@
 import {ComponentFixture, TestBed} from '@angular/core/testing';
 
 import {InlineEditorComponent} from './inline-editor.component';
-import {Device} from "../../types";
+import {AppPrivKeyName, Device, NewDeviceAuthentication} from "../../types";
 import {mockBackend} from "../../../testing/tauri-mock";
 
 describe('InlineEditorComponent', async () => {
@@ -36,5 +36,20 @@ describe('InlineEditorComponent', async () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it.each(['root', 'prisoner'])('edits agent authentication for %s without requiring a key', username => {
+    component.device = {...component.device, username, privateKey: undefined};
+    expect(component.deviceAuth).toEqual({type: NewDeviceAuthentication.Agent, value: null});
+  });
+
+  it('keeps password authentication when no private key is stored', () => {
+    component.device = {...component.device, privateKey: undefined, password: 'secret'};
+    expect(component.deviceAuth).toEqual({type: NewDeviceAuthentication.Password, value: 'secret'});
+  });
+
+  it('keeps app-key authentication', () => {
+    component.device.privateKey = {openSsh: AppPrivKeyName};
+    expect(component.deviceAuth).toEqual({type: NewDeviceAuthentication.AppKey, value: null});
   });
 });

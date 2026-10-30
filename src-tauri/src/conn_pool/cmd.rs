@@ -89,8 +89,26 @@ mod test {
         .unwrap();
         let err = DeviceConnection::new(device, None).expect_err("Should have failed");
         assert!(
-            matches!(err, Error::Authorization { message } if message == "Host needs authorization")
+            matches!(err, Error::Authorization { message } if message.contains("SSH agent authorization failed"))
         );
+    }
+
+    #[test]
+    #[ignore = "Requires SSH_AUTH_SOCK with tests/common/test_server/keys/id_root loaded"]
+    fn execute_command_agentauth() {
+        assert!(std::env::var_os("SSH_AUTH_SOCK").is_some());
+        let sshd = SshContainer::new();
+        let port = sshd.wait();
+        let device = serde_json::from_str::<Device>(&format!(
+            "{{\"profile\":\"ose\",\"name\":\"test\",\"host\":\"127.0.0.1\",\
+            \"port\": {port},\"username\": \"root\"}}"
+        ))
+        .unwrap();
+        let conn = DeviceConnection::new(device, None).expect("Agent authentication failed");
+        let output = conn
+            .execute_command("whoami", None, Encoding::String)
+            .expect("Failed to execute command");
+        assert_eq!(b"root\n", output.stdout.as_ref());
     }
 
     #[test]

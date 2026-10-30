@@ -5,7 +5,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use ares_connection_lib::session::{authenticate, connect, SshConnection};
-use libssh_rs::Session;
+use libssh_rs::{AuthStatus, Session};
 use regex::Regex;
 use uuid::Uuid;
 
@@ -25,7 +25,20 @@ impl DeviceConnection {
             .as_ref()
             .map(|k| k.read_content(ssh_dir))
             .transpose()?;
-        authenticate(&session, &device, key.as_deref())?;
+        if key.is_none() && device.password.is_none() {
+            // Keep unauthenticated devices working; otherwise use only the agent,
+            // not libssh's automatic fallback to private keys on disk.
+            if session.userauth_none(None)? != AuthStatus::Success
+                && session.userauth_agent(None)? != AuthStatus::Success
+            {
+                return Err(Error::Authorization {
+                    message: "SSH agent authorization failed. Check SSH_AUTH_SOCK and loaded keys."
+                        .to_string(),
+                });
+            }
+        } else {
+            authenticate(&session, &device, key.as_deref())?;
+        }
         let connection = DeviceConnection {
             id: Uuid::new_v4(),
             device: device.clone(),

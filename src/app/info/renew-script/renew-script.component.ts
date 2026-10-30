@@ -28,6 +28,9 @@ export class RenewScriptComponent implements OnInit {
     }
 
     ngOnInit(): void {
+        if (!this.device.privateKey) {
+            return;
+        }
         this.deviceManager.readPrivKey(this.device).then(key => {
             this.renewScriptContent = Mustache.render(renewScriptTemplate, {
                 device: this.device,

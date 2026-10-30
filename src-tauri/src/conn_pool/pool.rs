@@ -14,9 +14,16 @@ use crate::error::Error;
 impl DeviceConnectionPool {
     pub fn new(device: Device, ssh_dir: Option<PathBuf>) -> DeviceConnectionPool {
         let last_error = Arc::<Mutex<Option<Error>>>::default();
+        // Agent approval can take longer than the pool's 30-second default.
+        let timeout = if device.private_key.is_none() && device.password.is_none() {
+            Duration::from_secs(120)
+        } else {
+            Duration::from_secs(30)
+        };
         let inner = Pool::<DeviceConnectionManager>::builder()
             .min_idle(Some(0))
             .max_size(3)
+            .connection_timeout(timeout)
             .idle_timeout(Some(Duration::from_secs(900)))
             .error_handler(Box::new(DeviceConnectionErrorHandler {
                 last_error: last_error.clone(),
@@ -31,14 +38,12 @@ impl DeviceConnectionPool {
                 c.reset_last_ok();
                 Ok(c)
             }
-            Err(e) => {
-                return Err(self.last_error.lock().unwrap().take().unwrap_or_else(|| {
-                    Error::Message {
-                        message: format!("Unknown error getting connection from pool: {e:?}"),
-                        unhandled: true,
-                    }
-                }));
-            }
+            Err(_) => Err(self
+                .last_error
+                .lock()
+                .unwrap()
+                .take()
+                .unwrap_or(Error::Timeout)),
         }
     }
 }
@@ -48,7 +53,15 @@ impl ManageConnection for DeviceConnectionManager {
     type Error = Error;
 
     fn connect(&self) -> Result<Self::Connection, Self::Error> {
-        DeviceConnection::new(self.device.clone(), self.ssh_dir.as_deref())
+        DeviceConnection::new(self.device.clone(), self.ssh_dir.as_deref()).inspect_err(|error| {
+            log::warn!(
+                "SSH connection to {}@{}:{} failed: {:?}",
+                self.device.username,
+                self.device.host,
+                self.device.port,
+                error
+            );
+        })
     }
 
     fn is_valid(&self, _: &mut Self::Connection) -> Result<(), Self::Error> {
@@ -86,6 +99,34 @@ impl Clone for DeviceConnectionPool {
         DeviceConnectionPool {
             inner: self.inner.clone(),
             last_error: self.last_error.clone(),
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn agent_connections_allow_time_for_interactive_approval() {
+        for (credentials, timeout) in [
+            (serde_json::json!({}), 120),
+            (serde_json::json!({"password": "test"}), 30),
+            (serde_json::json!({"privateKey": {"openSsh": "test"}}), 30),
+        ] {
+            let mut device = serde_json::json!({
+                "profile": "ose", "name": "test", "host": "127.0.0.1",
+                "port": 22, "username": "root",
+            });
+            device
+                .as_object_mut()
+                .unwrap()
+                .extend(credentials.as_object().unwrap().clone());
+            let pool = DeviceConnectionPool::new(serde_json::from_value(device).unwrap(), None);
+            assert_eq!(
+                pool.inner.connection_timeout(),
+                Duration::from_secs(timeout)
+            );
         }
     }
 }

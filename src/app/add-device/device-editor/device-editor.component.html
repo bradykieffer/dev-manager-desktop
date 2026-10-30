@@ -38,6 +38,7 @@
         <option value="localKey">Private Key</option>
         <option value="password">Password</option>
         <option value="appKey">App Key</option>
+        <option value="agent">SSH Agent</option>
         <option value="devKey" [hidden]="hideDevModeAuth" [disabled]="hideDevModeAuth">Dev Mode</option>
       </select>
     </div>
@@ -45,7 +46,10 @@
       <label class="form-label d-none d-md-block invisible">Authentication Info</label>
       <div class="input-group auth-input" [formGroup]="formGroup.controls.sshAuth">
         @let authType = formGroup.controls.sshAuth.controls.type.getRawValue();
-        @if (authType) {
+        @if (authType === 'agent') {
+          <span class="form-text">Uses keys loaded in your SSH agent via SSH_AUTH_SOCK. No private key is stored in the app.
+            If using 1Password, check its menu-bar or tray icon for a pending approval.</span>
+        } @else if (authType) {
           <input type="text" class="form-control" id="authValue" formControlName="value" [appSshAuthValue]="authType"
                  autocomplete="off">
           @if (authType === 'localKey') {

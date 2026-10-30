@@ -18,6 +18,7 @@ export enum NewDeviceAuthentication {
     LocalKey = 'localKey',
     AppKey = 'appKey',
     DevKey = 'devKey',
+    Agent = 'agent',
 }
 
 export const AppPrivKeyName = 'id_devman';
@@ -56,8 +57,13 @@ export declare interface NewDeviceWithDevicePrivateKey extends NewDeviceBase {
     passphrase: string;
 }
 
+// No stored credentials: authenticate with the local SSH agent.
+export declare interface NewDeviceWithAgent extends NewDeviceBase {
+}
+
 export type NewDevice =
-    NewDeviceWithPassword
+    NewDeviceWithAgent
+    | NewDeviceWithPassword
     | NewDeviceWithLocalPrivateKey
     | NewDeviceWithAppPrivateKey
     | NewDeviceWithDevicePrivateKey;

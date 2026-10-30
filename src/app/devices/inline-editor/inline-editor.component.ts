@@ -31,6 +31,8 @@ export class InlineEditorComponent {
     get deviceAuth(): SetupAuthInfoUnion {
         if (this.device.password) {
             return {type: NewDeviceAuthentication.Password, value: this.device.password};
+        } else if (!this.device.privateKey) {
+            return {type: NewDeviceAuthentication.Agent, value: null};
         } else if (this.device.username === 'prisoner') {
             return {
                 type: NewDeviceAuthentication.DevKey,

@@ -34,6 +34,21 @@ manager before scheduling the script (including on OpenWrt). The script uses
 a persistent token cache when the TV is unreachable and exits with an error
 if the request fails or the server does not report success.
 
+### SSH-agent authentication
+
+Choose **SSH Agent** when adding or editing a device to use keys already loaded
+in your local SSH agent (`ssh-add -l` lists them). The matching public key must
+be authorized on the TV. The app uses `SSH_AUTH_SOCK` from its launch environment;
+if your desktop launcher doesn't inherit it, launch the app from a terminal
+where the agent is available. This also works with agents such as 1Password
+when their socket is exported as `SSH_AUTH_SOCK`. For 1Password, check its
+menu-bar or tray icon during connection: approval prompts can wait in the
+background rather than opening a window automatically.
+
+Agent-backed devices store no private key or password. Existing devices with
+neither also try the agent. Keys stay in the agent; they cannot be exported
+by the app for a standalone Developer Mode renewal script.
+
 ## Features
 
 - No need to install LG SDK or IDE
