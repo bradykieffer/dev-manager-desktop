@@ -14,12 +14,13 @@
   ],
   "scripts": {
     "tauri": "node scripts/tauri-wrapper.js",
-    "start": "tauri dev",
+    "start": "node scripts/tauri-wrapper.js dev",
     "build": "tauri build",
     "ng": "node scripts/ng-wrapper.js",
     "icon": "node scripts/icon-generator.js",
     "test": "node scripts/ng-wrapper.js test --watch=false",
     "test:renew-script": "node --test scripts/renew-script.test.mjs",
+    "test:macos-dev-runner": "node --test scripts/macos-dev-runner.test.js",
     "test:integration": "node scripts/ng-wrapper.js run ui:test-integration"
   },
   "private": true,

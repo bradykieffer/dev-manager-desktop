@@ -65,6 +65,13 @@ async function copyOpenSSLLibs() {
 }
 
 async function run() {
+  if (process.platform === 'darwin' && process.argv[2] === 'dev') {
+    const runner = JSON.stringify([process.execPath, path.join(__dirname, 'macos-dev-runner.js')]);
+    const args = ['aarch64', 'x86_64'].flatMap(arch => [
+      '--config', `target.${arch}-apple-darwin.runner=${runner}`,
+    ]);
+    process.argv.splice(3, 0, '--config', JSON.stringify({build: {runner: {cmd: 'cargo', args}}}));
+  }
   if (process.platform === 'win32' && process.argv[2] === 'android') {
     await prepareOpenSSL();
   }
@@ -93,6 +100,10 @@ run().then(async () => {
     if (process.platform === 'win32') {
       await copyOpenSSLLibs();
     }
+  }
+}).finally(() => {
+  if (process.platform === 'darwin' && process.argv[2] === 'dev') {
+    require('./macos-dev-runner').stopDevApp();
   }
 }).catch((err) => {
   console.error(err);

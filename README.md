@@ -49,6 +49,18 @@ Agent-backed devices store no private key or password. Existing devices with
 neither also try the agent. Keys stay in the agent; they cannot be exported
 by the app for a standalone Developer Mode renewal script.
 
+### Running locally
+
+Run `npm ci`, then `npm start`. On macOS, the development runner wraps each
+Rust build in an ad-hoc-signed `.app` with a separate development identity and
+launches it through macOS LaunchServices (`open`). This lets 1Password
+recognize foreground SSH-agent requests instead of silently treating the raw
+development executable as a background process.
+Rust rebuilds and frontend hot reload still work. Use `npm start` or
+`npm run tauri dev` rather than invoking `tauri dev` directly to use this runner.
+macOS app output is written to `target/.macos-dev-app.log`; build output stays
+in the terminal.
+
 ## Features
 
 - No need to install LG SDK or IDE
